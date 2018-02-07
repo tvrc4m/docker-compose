@@ -11,7 +11,6 @@ services:
       - /kanfa:/kanfa
       - /data/nginx:/etc/nginx
     depends_on:
-      - mysql
       - php-fpm
     # deploy:
     #   replicas: 1 
@@ -26,14 +25,14 @@ services:
     expose:
       - 9000
     links:
-      - mysql
+      - mysql-master
+      - mysql-slave
       - redis
     volumes:
       - /slamdunk:/slamdunk
       - /kanfa:/kanfa
       - /data/php/etc:/usr/local/etc/
     depends_on:
-      - mysql
       - redis
     # deploy:
     #   replicas: 1 
@@ -50,13 +49,15 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "mac@mysql"
     volumes:
-      - /data/mysql/web/master/:/var/lib/mysql
+      - /data/mysql/web/master/data:/var/lib/mysql
+      - /data/mysql/web/master/etc:/etc/mysql/
     scale: 1
     restart: always
     labels:
       web: mysql
     networks:
-      - web
+      web:
+        ipv4_address: 172.31.0.10
   mysql-slave:
     image: mysql:8.0.3
     expose:
@@ -64,13 +65,15 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "mac@mysql"
     volumes:
-      - /data/mysql/web/slave/:/var/lib/mysql
+      - /data/mysql/web/slave/data:/var/lib/mysql
+      - /data/mysql/web/slave/etc:/etc/mysql/
     scale: 1
     restart: always
     labels:
       web: mysql
     networks:
-      - web
+      web:
+        ipv4_address: 172.31.0.11
   redis:
     image: redis:3.2-alpine
     expose:
