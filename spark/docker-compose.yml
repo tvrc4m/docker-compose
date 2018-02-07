@@ -1,0 +1,22 @@
+version: "3.4"
+services:
+  spark-server:
+    image: docker
+    deploy:
+      replicas: 5
+    networks:
+      - spark
+  hdfs:
+    image: 
+    networks:
+      - spark
+
+networks:
+  spark:
+    driver: bridge
+    iapm:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+    

@@ -1,0 +1,22 @@
+version: "3.4"
+services:
+  lan_node:
+    image: docker
+    deploy:
+      replicas: 5
+    networks:
+      - lan
+  lan_master:
+    image: docker
+    networks:
+      - lan
+
+networks:
+  lan:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.8.0.0/16
+
+    

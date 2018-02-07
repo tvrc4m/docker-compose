@@ -1,0 +1,53 @@
+version: "3.4"
+services:
+  nginx: 
+    image: nginx:1.12-alpine 
+    ports:
+      - 80:80
+    links:
+      - php-fpm
+    volumes:
+      - /data/www:/data/www
+      - /data/nginx:/etc/nginx
+    depends_on:
+      - mysql
+      - php-fpm
+    deploy:
+      replicas: 1 
+    networks:
+      web:
+        ipv4_address: 172.10.0.5
+  php-fpm:
+    image: tvrc4m/php:5.6-fpm-bb
+    expose:
+      - 9000
+    links:
+      - mysql
+    volumes:
+      - /data/www:/data/www
+    depends_on:
+      - mysql
+    deploy:
+      replicas: 1 
+    networks:
+      web:
+        ipv4_address: 172.10.0.7
+  mysql:
+    image: mysql:8.0
+    expose:
+      - 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: "mac@mysql"
+    volumes:
+      - /data/mysql/data/:/var/lib/mysql
+      - /data/mysql/conf:/etc/mysql/
+    networks:
+      web:
+        ipv4_address: 172.10.0.8
+networks:
+  web:
+    driver: bridge
+    ipam:
+      driver: default 
+      config:
+        - subnet: 172.10.0.0/16
