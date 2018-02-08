@@ -1,0 +1,92 @@
+version: "2.3"
+services:
+  nginx:
+    image: nginx
+    ports:
+      - 80:80
+    links:
+      - php-fpm
+    volumes:
+      - /slamdunk:/slamdunk
+      - /kanfa:/kanfa
+      - /data/nginx:/etc/nginx
+    depends_on:
+      - php-fpm
+    # deploy:
+    #   replicas: 1 
+    scale: 1
+    restart: always
+    labels:
+      web: nginx
+    networks:
+      - web
+  php-fpm:
+    image: php:7.2.0-fpm-ext
+    expose:
+      - 9000
+    links:
+      - mysql-master
+      - mysql-slave
+      - redis
+    volumes:
+      - php-session:/tmp/session/:rw
+      - /slamdunk:/slamdunk
+      - /kanfa:/kanfa
+      - /data/php/etc:/usr/local/etc/
+    depends_on:
+      - redis
+    # deploy:
+    #   replicas: 1 
+    scale: 3
+    restart: always
+    labels:
+      web: php-fpm
+    networks:
+      - web
+  mysql-master:
+    image: mysql:8.0.3
+    expose:
+      - 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: "mac@mysql"
+    volumes:
+      - /data/mysql/web/master/data:/var/lib/mysql
+      - /data/mysql/web/master/etc:/etc/mysql/
+    scale: 1
+    restart: always
+    labels:
+      web: mysql
+    networks:
+      web:
+        ipv4_address: 172.31.0.10
+  mysql-slave:
+    image: mysql:8.0.3
+    expose:
+      - 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: "mac@mysql"
+    volumes:
+      - /data/mysql/web/slave/data:/var/lib/mysql
+      - /data/mysql/web/slave/etc:/etc/mysql/
+    scale: 1
+    restart: always
+    labels:
+      web: mysql
+    networks:
+      web:
+        ipv4_address: 172.31.0.11
+
+volumes:
+  php-session:
+
+networks:
+  web:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.31.0.0/16
+
+
+
+
